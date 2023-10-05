@@ -1,31 +1,38 @@
 #!/usr/bin/env bash
-# Sets up your web servers for the deployment of web_static.
+# Bash script that sets up your web servers for the deployment of web_static
 
-if ! dpkg -l | grep -q "nginx"; then
-	apt-get -y update
-	apt-get -y install nginx
+
+apt-get -y update
+apt-get -y install nginx
+
+
+if ! nginx -v
+then
+	exit
 fi
 
-web_static="/data/web_static"
-mkdir -p "$web_static/shared/"
-mkdir -p "$web_static/releases/test/"
-touch "$web_static/releases/test/index.html"
-printf "<html>
+
+test_folder="/data/web_static/releases/test"
+sym_link="/data/web_static/current"
+nginx_conf="/etc/nginx/sites-available/default"
+
+mkdir -p "$test_folder"
+mkdir -p "/data/web_static/shared/"
+
+printf %s "<html>
   <head>
   </head>
   <body>
     Holberton School
   </body>
 </html>
-" > "$web_static/releases/test/index.html"
+" > "$test_folder/index.html"
 
-rm -f "$web_static/current"
-ln -s "$web_static/releases/test/" "$web_static/current"
+ln -sf -T "$test_folder" "$sym_link"
+chown -R ubuntu:ubuntu "/data"
 
-chown -R ubuntu:ubuntu /data/
 
-static_url="\n\tlocation /hbnb_static {\n\t\t alias $web_static/current/;\n\t}\n"
-nginx_config="/etc/nginx/sites-available/default"
-sed -i "/^}$/i\ $static_url" "$nginx_config" 
+text="\tlocation \/hbnb_static {\n\t\talias \/data\/web_static\/current\/;\n\t}\n}"
+sed -i -r "s/^}$/$text/" "$nginx_conf"
 
-service nginx restart
+nginx -s reload
