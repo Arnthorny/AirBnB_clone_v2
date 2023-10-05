@@ -3,9 +3,7 @@
 Fabric script (based on the file 1-pack_web_static.py)
 that distributes an archive to your web servers, using the function do_deploy:
 """
-
 from fabric.api import env, run, put
-import datetime
 from pathlib import Path
 
 
@@ -29,7 +27,7 @@ def do_deploy(archive_path):
 
     p = Path(archive_path)
 
-    if not p.exists():
+    if not p.is_file():
         return False
 
     arch_folder = '/data/web_static/releases/'
@@ -42,7 +40,7 @@ def do_deploy(archive_path):
         return False
 
     sym_link = "/data/web_static/current"
-    if run('ln -sf -T {}/{} {}'.format(arch_folder, p.stem, sym_link)).failed:
+    if run('ln -sf -T {}/{}/ {}'.format(arch_folder, p.stem, sym_link)).failed:
         return False
 
     return True

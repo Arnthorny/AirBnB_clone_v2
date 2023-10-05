@@ -2,17 +2,14 @@
 # Bash script that sets up your web servers for the deployment of web_static
 
 
-apt-get -y update
-apt-get -y install nginx
-
-
-if ! nginx -v
+if ! nginx -v >> /dev/null 2>&1
 then
-	exit
+	apt-get -y update
+	apt-get -y install nginx
 fi
 
 
-test_folder="/data/web_static/releases/test"
+test_folder="/data/web_static/releases/test/"
 sym_link="/data/web_static/current"
 nginx_conf="/etc/nginx/sites-available/default"
 
@@ -28,11 +25,13 @@ printf %s "<html>
 </html>
 " > "$test_folder/index.html"
 
-ln -sf -T "$test_folder" "$sym_link"
-chown -R ubuntu:ubuntu "/data"
+rm -f "$sym_link"
+ln -s "$test_folder" "$sym_link"
+
+chown -R ubuntu:ubuntu "/data/"
 
 
-text="\tlocation \/hbnb_static {\n\t\talias \/data\/web_static\/current\/;\n\t}\n}"
+text="\n\tlocation \/hbnb_static {\n\t\talias \/data\/web_static\/current\/;\n\t}\n}"
 sed -i -r "s/^}$/$text/" "$nginx_conf"
 
-nginx -s reload
+service nginx restart

@@ -11,6 +11,7 @@ from pathlib import Path
 
 
 env.hosts = ['18.206.206.50', '35.175.104.89']
+created_archive = None
 
 
 def do_pack():
@@ -47,7 +48,7 @@ def do_deploy(archive_path):
 
     p = Path(archive_path)
 
-    if not p.exists():
+    if not p.is_file():
         return False
 
     arch_folder = '/data/web_static/releases'
@@ -60,14 +61,11 @@ def do_deploy(archive_path):
         return False
 
     sym_link = "/data/web_static/current"
-    if (run('ln -sf -T {}/{} {}'.
+    if (run('ln -sf -T {}/{}/ {}'.
             format(arch_folder, p.stem, sym_link)).failed):
         return False
 
     return True
-
-
-created_archive = None
 
 
 def deploy():
