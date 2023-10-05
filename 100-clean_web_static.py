@@ -31,7 +31,12 @@ def do_clean(number=0):
     global l_clean
     vs = './versions'
     rses = '/data/web_static/releases'
-    number = 1 if int(number) == 0 else int(number)
+    try:
+        number = 1 if int(number) == 0 else int(number)
+        if number < 0:
+            return
+    except (ValueError, TypeError):
+        return
 
     if not l_clean:
         local('rm -f $(ls -1rt {}/*.tgz | head -n -{})'.format(vs, number))

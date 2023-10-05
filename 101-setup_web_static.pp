@@ -51,14 +51,21 @@ file { $dirs:
 file { "${test_folder}/index.html":
   ensure  => 'file',
   content => $index_cnt,
-  require => File['/data/web_static/releases/test'],
+  require => File['/data/web_static/releases/test/'],
 }
 
 #This resource creates a symlink
-file { $sym_link:
-  ensure  => 'link',
-  target  => $test_folder,
-  require => File['/data/web_static/releases/test/'],
+#file { $sym_link:
+#  ensure  => 'link',
+#  target  => $test_folder,
+#  replace => yes,
+#  require => File['/data/web_static/releases/test/'],
+#}
+
+exec { 'Symlink':
+  command => "rm -f ${sym_link} && ln -s ${test_folder} ${sym_link}",
+  path    => [ '/bin/', '/sbin/' , '/usr/bin/', '/usr/sbin/' ],
+  require => File[$test_folder],
 }
 
 # This resource replaces the closing brace with a location context.
