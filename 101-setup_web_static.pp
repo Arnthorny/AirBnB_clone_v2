@@ -17,10 +17,6 @@ $index_cnt = @(EOT)
 $test_folder = '/data/web_static/releases/test/'
 $sym_link = '/data/web_static/current'
 
-$dirs = [ '/data/', '/data/web_static/', '/data/web_static/releases/',
-          '/data/web_static/shared/', '/data/web_static/releases/test/'
-        ]
-
 # This exec resource runs the `apt-get update` command
 exec { 'apt update':
   command => '/usr/bin/apt-get update'
@@ -39,33 +35,24 @@ service { 'nginx':
 }
 
 #This resource creates all required directories
-file { $dirs:
-  ensure  => 'directory',
-  owner   => 'ubuntu',
-  group   => 'ubuntu',
+exec { 'dirs':
+  command => "mkdir -p ${test_folder} && mkdir -p /data/web_static/shared/ && chown -R ubuntu:ubuntu /data/",
+  path    => [ '/bin/', '/sbin/' , '/usr/bin/', '/usr/sbin/' ],
   require => Package['nginx'],
-  recurse => true
 }
 
 #This resource creates a test html file
-file { "${test_folder}/index.html":
+file { "${test_folder}index.html":
   ensure  => 'file',
   content => $index_cnt,
-  require => File['/data/web_static/releases/test/'],
+  require => Exec['dirs'],
 }
 
 #This resource creates a symlink
-#file { $sym_link:
-#  ensure  => 'link',
-#  target  => $test_folder,
-#  replace => yes,
-#  require => File['/data/web_static/releases/test/'],
-#}
-
 exec { 'Symlink':
   command => "rm -f ${sym_link} && ln -s ${test_folder} ${sym_link}",
   path    => [ '/bin/', '/sbin/' , '/usr/bin/', '/usr/sbin/' ],
-  require => File[$test_folder],
+  require => Exec['dirs'],
 }
 
 # This resource replaces the closing brace with a location context.

@@ -4,14 +4,10 @@ Fabric script (based on the file 3-deploy_web_static.py) that
 deletes out-of-date archives, using the function do_clean:
 """
 
-from fabric.api import local, env, run, put, runs_once
-import datetime
-from pathlib import Path
+from fabric.api import local, env, run
 
 
 env.hosts = ['18.206.206.50', '35.175.104.89']
-
-
 l_clean = False
 
 
