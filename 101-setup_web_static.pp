@@ -4,15 +4,13 @@ include stdlib
 
 $repl_dir = "\n\tlocation /hbnb_static {\n\t\talias /data/web_static/current/;\n\t}\n}"
 $config_file = '/etc/nginx/sites-available/default'
-$index_cnt = @(EOT)
-<html>
+$index_cnt = "<html>
   <head>
   </head>
   <body>
     Holberton School
   </body>
-</html>
-| EOT
+</html>"
 
 $test_folder = '/data/web_static/releases/test/'
 $sym_link = '/data/web_static/current'
@@ -36,7 +34,7 @@ service { 'nginx':
 
 #This resource creates all required directories
 exec { 'dirs':
-  command => "mkdir -p ${test_folder} && mkdir -p /data/web_static/shared/ && chown -R ubuntu:ubuntu /data/",
+  command => "mkdir -p ${test_folder} && mkdir -p /data/web_static/shared/",
   path    => [ '/bin/', '/sbin/' , '/usr/bin/', '/usr/sbin/' ],
   require => Package['nginx'],
 }
@@ -52,7 +50,14 @@ file { "${test_folder}index.html":
 exec { 'Symlink':
   command => "rm -f ${sym_link} && ln -s ${test_folder} ${sym_link}",
   path    => [ '/bin/', '/sbin/' , '/usr/bin/', '/usr/sbin/' ],
-  require => Exec['dirs'],
+  require => File["${test_folder}index.html"],
+}
+
+# This resource changes ownership
+exec { 'chwn':
+  command => 'chown -R ubuntu:ubuntu /data/',
+  path    => [ '/bin/', '/sbin/' , '/usr/bin/', '/usr/sbin/' ],
+  require => Exec['Symlink'],
 }
 
 # This resource replaces the closing brace with a location context.
@@ -62,6 +67,6 @@ file_line { 'Add location context':
   line     => $repl_dir,
   match    => '^}$',
   multiple => false,
-  require  => Package['nginx'],
+  require  => Exec['chwn'],
   notify   => Service['nginx']
 }
