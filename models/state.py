@@ -4,6 +4,7 @@ import models
 from models.base_model import BaseModel, Base
 from sqlalchemy import Column, String
 from sqlalchemy.orm import relationship
+import os
 
 
 class State(BaseModel, Base):
@@ -11,13 +12,15 @@ class State(BaseModel, Base):
 
     __tablename__ = "states"
     name = Column(String(128), nullable=False)
-    cities = relationship(
+
+    if os.getenv("HBNB_TYPE_STORAGE") == "db":
+        cities = relationship(
             'City',
             backref="state",
             cascade="all, delete-orphan")
-
-    @property
-    def cities(self):
-        """Gets the attribute"""
-        cities = models.storage.all("City").values()
-        return [city for city in cities if city.state_id == self.id]
+    else:
+        @property
+        def cities(self):
+            """Gets the attribute"""
+            cities = models.storage.all("City").values()
+            return [city for city in cities if city.state_id == self.id]
